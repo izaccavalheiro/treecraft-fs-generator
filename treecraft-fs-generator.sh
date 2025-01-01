@@ -1,47 +1,55 @@
 #!/bin/bash
 
-# Enable strict mode
+# Enable strict mode for better error handling:
+# -e: exit on error
+# -u: treat unset variables as errors
+# -o pipefail: return value of pipeline is status of last command to exit with non-zero status
 set -euo pipefail
 
-# Function to check if command exists
+# Check if a command exists in the system PATH
+# Usage: command_exists "command_name"
+# Returns: 0 if command exists, 1 if not
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Check system type and requirements
+# Detect OS and install/configure required dependencies
+# Supports: macOS (Intel/Apple Silicon) and Linux
+# Installs: grep, tree via package managers
 check_requirements() {
-    # Detect OS
     case "$(uname -s)" in
         Darwin*)
             echo "Running on macOS"
-            # Check for Intel or Apple Silicon
+            # Detect Apple Silicon vs Intel architecture
             if [[ $(uname -m) == "arm64" ]]; then
                 echo "Apple Silicon detected"
             else
                 echo "Intel processor detected"
             fi
             
-            # Check for required tools
+            # Install GNU grep if not present
             if ! command_exists "ggrep"; then
                 echo "GNU grep (ggrep) is required. Installing via Homebrew..."
                 if ! command_exists "brew"; then
-                    echo "Error: Homebrew is not installed. Please install Homebrew first."
+                    echo "Error: Homebrew is not installed."
                     exit 1
                 fi
                 brew install grep
             fi
             
+            # Install tree utility if not present
             if ! command_exists "tree"; then
                 echo "tree is required. Installing via Homebrew..."
                 brew install tree
             fi
             
-            # Set commands to use GNU versions on macOS
+            # Use GNU versions of tools on macOS
             GREP="ggrep"
             TREE="tree"
             ;;
         Linux*)
             echo "Running on Linux"
+            # Use standard Linux tools
             GREP="grep"
             TREE="tree"
             ;;
@@ -52,7 +60,7 @@ check_requirements() {
     esac
 }
 
-# Check if input file is provided
+# Validate command line arguments
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <input_file>"
     exit 1
@@ -66,89 +74,100 @@ if [ ! -f "$input_file" ]; then
     exit 1
 fi
 
-# Run requirements check
+# Install and configure required tools
 check_requirements
 
-# Create base directory for our folder structure
+# Create base directory for the structure
 base_dir="generated_structure"
 mkdir -p "$base_dir"
 
-# Function to count leading pipe characters to determine depth
+# Calculate the depth level of a line based on indentation
+# Counts both "│   " and "    " as one level
+# Args: $1 - The line to analyze
+# Returns: The depth level as a number
 count_depth() {
     local line="$1"
-    local pipes=$(echo "$line" | $GREP -o "│" | wc -l)
-    local spaces=$(echo "$line" | $GREP -o " " | wc -l)
-    echo $((($spaces - 3) / 4))
+    local count=0
+    local i=0
+    
+    while [ $i -lt ${#line} ]; do
+        local chunk="${line:$i:4}"
+        if [[ "$chunk" == "│   " || "$chunk" == "    " ]]; then
+            ((count++))
+            ((i+=4))
+        else
+            break
+        fi
+    done
+    
+    echo "$count"
 }
 
-# Function to extract item name from line
+# Extract the item name from a line by removing tree structure characters
+# Args: $1 - The line containing an item
+# Returns: The clean item name
 get_item_name() {
     local line="$1"
     echo "$line" | sed -E 's/^.*[├└]── //'
 }
 
-# Function to check if item is a directory (ends with /)
+# Check if an item is a directory by looking for trailing slash
+# Args: $1 - Item name to check
+# Returns: 0 if directory, 1 if not
 is_directory() {
     local name="$1"
     [[ "$name" == */ ]]
 }
 
-# Function to sanitize file/folder names
+# Sanitize file/folder names by removing problematic characters
+# Args: $1 - Name to sanitize
+# Returns: Sanitized name
 sanitize_name() {
     local name="$1"
-    # Remove potentially problematic characters
     echo "$name" | sed -E 's/[^a-zA-Z0-9./_-]/_/g'
 }
 
-# Initialize directory stack
-declare -a dir_stack=("$base_dir")
-current_path="$base_dir"
-prev_level=0
+# Initialize directory tracking
+declare -a dir_stack=()     # Stores directory names at each level
+current_path="$base_dir"    # Current working path
+prev_level=0               # Previous indentation level
 
-# Read the input file line by line
+# Process the input file line by line
 while IFS= read -r line || [ -n "$line" ]; do
-    # Skip empty lines
+    # Skip empty lines and root marker
     [ -z "$line" ] && continue
+    [[ "$line" == "/" ]] && continue
     
-    # Skip lines without item markers
+    # Skip lines without tree structure markers
     if ! echo "$line" | $GREP -q "[├└]──"; then
         continue
     fi
     
-    # Get current depth level
+    # Calculate current depth and get item name
     current_level=$(count_depth "$line")
-    
-    # Get item name and sanitize it
     item=$(get_item_name "$line")
     item=$(sanitize_name "$item")
     
-    # Handle directory navigation
+    # Handle directory level changes
     if [ $current_level -le $prev_level ]; then
-        # Calculate how many levels to go up
-        levels_up=$((prev_level - current_level + 1))
-        
-        # Remove directories from stack
-        while [ $levels_up -gt 0 ] && [ ${#dir_stack[@]} -gt 1 ]; do
-            unset 'dir_stack[${#dir_stack[@]}-1]'
-            levels_up=$((levels_up - 1))
+        # Calculate path when going back up the tree
+        levels_back=$((prev_level - current_level + 1))
+        current_path="$base_dir"
+        for ((i=0; i<current_level; i++)); do
+            current_path="$current_path/${dir_stack[$i]}"
         done
-        
-        # Update current path
-        current_path="${dir_stack[${#dir_stack[@]}-1]}"
     fi
     
-    # Create new item (folder or file)
+    # Create directory or file based on item type
     if is_directory "$item"; then
-        # Remove trailing slash for mkdir
+        # Handle directory creation
         folder_name="${item%/}"
         new_path="$current_path/$folder_name"
         mkdir -p "$new_path"
-        
-        # Add to directory stack and update current path
-        dir_stack+=("$new_path")
+        dir_stack[$current_level]="$folder_name"
         current_path="$new_path"
     else
-        # Create empty file
+        # Handle file creation
         touch "$current_path/$item"
     fi
     
@@ -156,8 +175,6 @@ while IFS= read -r line || [ -n "$line" ]; do
     
 done < "$input_file"
 
+# Display results
 echo "Structure created in '$base_dir'"
-
-# Print the created structure using appropriate tree command
-echo "Created structure:"
 cd "$base_dir" && $TREE
