@@ -13,208 +13,149 @@ Turn ASCII tree diagrams into real file system structures with a single command.
 [Usage](#usage) •
 [Features](#features) •
 [Documentation](#documentation) •
-[Contributing](#contributing) •
-[Support](#support)
+[Contributing](#contributing)
 
 </div>
 
----
+## 🎯 What's New
 
-## 🌟 Overview
-
-TreeCraft is a powerful command-line utility that transforms tree-style text representations into actual directory structures and files. Perfect for developers, system administrators, and DevOps professionals who need to quickly replicate directory structures across different environments.
-
-### 🎯 Key Features
-
-- **Cross-Platform Compatibility**: Runs seamlessly on macOS (Intel/Apple Silicon) and Linux
-- **Tree-Style Input**: Uses familiar ASCII tree notation (├── and └──)
-- **Smart Processing**: Creates both directories and files from your specification
-- **Automated Setup**: Handles dependencies automatically via Homebrew on macOS
-- **Safe Execution**: Implements robust error handling and name sanitization
+### v2.0.0 - Major Update
+- Complete rewrite of directory nesting algorithm
+- Support for both "│   " and "    " indentation patterns
+- Improved cross-platform compatibility
+- Enhanced error handling and input validation
+- Automatic dependency management
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 - Bash shell environment
-- For macOS users:
-  - Homebrew (will be used to install dependencies)
-- For Linux users:
+- For macOS:
+  - Homebrew (auto-installs dependencies)
+- For Linux:
   - `tree` package
   - GNU `grep`
 
 ### Installation
-
-1. Clone the repository:
 ```bash
 git clone https://github.com/izaccavalheiro/treecraft-fs-generator.git
 cd treecraft-fs-generator
+chmod +x treecraft-fs-generator.sh
 ```
 
-2. Make the script executable:
+Optional: Add to PATH
 ```bash
-chmod +x treecraft.sh
+sudo ln -s "$(pwd)/treecraft-fs-generator.sh" /usr/local/bin/treecraft
 ```
 
-3. (Optional) Add to your PATH for system-wide access:
-```bash
-sudo ln -s "$(pwd)/treecraft.sh" /usr/local/bin/treecraft
-```
+## 📋 Usage
 
-### Basic Usage
-
-1. Create a text file (e.g., `folder-structure-sample.txt`) with your desired structure:
+1. Create your structure file (e.g., `folder-structure-sample.txt`):
 ```
-root/
-├── src/
-│   ├── components/
-│   │   ├── Header.js
-│   │   └── Footer.js
-│   └── App.js
-└── docs/
-    ├── README.md
-    └── API.md
+/
+└── root/
+    └── test/
+        ├── unit/
+        │   ├── 01_basic_operations.bats
+        │   └── 02_directory_creation.bats
+        └── integration/
+            └── 01_full_structure.bats
 ```
 
 2. Run TreeCraft:
 ```bash
-./treecraft.sh folder-structure-sample.txt
+./treecraft-fs-generator.sh folder-structure-sample.txt
 ```
+
+## ✨ Features
+
+### Input Format Support
+- Standard tree format (`├──`, `└──`)
+- Mixed indentation patterns
+- Vertical bar with spaces (`│   `)
+- Four space indentation (`    `)
+
+### Cross-Platform Support
+- macOS (Intel & Apple Silicon)
+- Linux distributions
+- Automatic dependency handling
+- Platform-specific optimizations
+
+### Advanced File System Operations
+- Deep nested structures
+- Mixed files and directories
+- Special character handling
+- Permission management
+- Path length validation
+
+## 🛠 Development Setup
+
+### Running Tests
+```bash
+# Install BATS
+npm install -g bats
+git clone https://github.com/bats-core/bats-support test/test_helper/bats-support
+git clone https://github.com/bats-core/bats-assert test/test_helper/bats-assert
+
+# Run test suites
+bats test/unit/*.bats
+```
+
+### Test Categories
+- Unit tests
+  - Basic operations
+  - Directory creation
+  - File creation
+  - Error handling
+- Integration tests
+  - Full structures
+  - Cross-platform
+  - Dependencies
+- Edge case tests
+  - Special characters
+  - Deep nesting
+  - Permissions
 
 ## 📖 Documentation
 
-### Input Format
+### Indentation Rules
+- Each level uses 4 characters
+- Supports two patterns:
+  1. Vertical bar + spaces: `│   `
+  2. Four spaces: `    `
 
-TreeCraft accepts tree-style notation:
-- Use `├──` for items that have siblings below them
-- Use `└──` for the last item in a group
-- Add trailing `/` to indicate directories
-- Lines without trailing `/` are treated as files
-- Use correct indentation with `│` for hierarchy
+### Directory Markers
+- Directories end with forward slash: `folder/`
+- Files have no trailing slash: `file.txt`
 
-### Example Structures
-
-#### Basic Web Project
-```
-project/
-├── index.html
-├── css/
-│   └── style.css
-├── js/
-│   └── main.js
-└── images/
-```
-
-#### Node.js Application
-```
-node-app/
-├── src/
-│   ├── controllers/
-│   ├── models/
-│   └── routes/
-├── tests/
-├── package.json
-└── README.md
-```
-
-### Advanced Usage
-
-#### Custom Base Directory
-```bash
-BASE_DIR="my-project" ./treecraft.sh folder-structure-sample.txt
-```
-
-#### Verbose Mode
-```bash
-VERBOSE=1 ./treecraft.sh folder-structure-sample.txt
-```
+### Tree Symbols
+- `├──` for items with siblings below
+- `└──` for last items in their groups
+- `│   ` for vertical lines in the tree
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how you can help:
-
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'feat: add amazing feature'`
 4. Push to branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
-### Development Setup
+## 🐛 Known Limitations
 
-1. Clone your fork:
-```bash
-git clone https://github.com/izaccavalheiro/treecraft-fs-generator.git
-cd treecraft-fs-generator
-```
-
-2. Create a new branch:
-```bash
-git checkout -b feature/your-feature
-```
-
-3. Make your changes and test thoroughly
-
-4. Submit a pull request with a clear description of your changes
-
-## ⚡ Performance
-
-TreeCraft is designed to be lightweight and fast:
-- Minimal dependencies
-- Efficient file system operations
-- Smart caching of directory paths
-- Optimized for large directory structures
-
-## 🔒 Security
-
-- Input sanitization to prevent command injection
-- Safe file name handling
-- No execution of user-provided content
-- Restricted to current directory scope
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Permission Denied**
-```bash
-chmod +x treecraft.sh
-```
-
-2. **Missing Dependencies**
-```bash
-# macOS
-brew install tree grep
-
-# Linux
-sudo apt-get install tree
-```
-
-3. **Invalid Input Format**
-- Ensure proper indentation
-- Check for missing directory slashes
-- Verify tree symbols (├── and └──)
+- Maximum path length dependent on OS
+- File content creation not supported
+- No symbolic link support
+- No file permission configuration
 
 ## 📜 License
 
 Distributed under the MIT License. See `LICENSE` file for more information.
 
-## 👥 Support
-
-- Create an issue for bug reports
-- Start a discussion for feature requests
-- Check existing issues before posting
-
-## 🌟 Acknowledgments
-
-- Inspired by the Unix `tree` command
-- Built with and for the developer community
-- Special thanks to all contributors
-
 ---
 
 <div align="center">
-Made with ❤️ by Izac Cavalheiro
+Made with ❤️ by [Izac Cavalheiro]
 
 [![Stars](https://img.shields.io/github/stars/izaccavalheiro/treecraft-fs-generator?style=social)](https://github.com/izaccavalheiro/treecraft-fs-generator/stargazers)
-[![Follow](https://img.shields.io/github/followers/izaccavalheiro?style=social)](https://github.com/izaccavalheiro)
 </div>
