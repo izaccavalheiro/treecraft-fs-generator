@@ -103,12 +103,13 @@ count_depth() {
     echo "$count"
 }
 
-# Extract the item name from a line by removing tree structure characters
+# Extract the item name from a line by removing tree structure characters and comments
 # Args: $1 - The line containing an item
-# Returns: The clean item name
+# Returns: The clean item name without comments
 get_item_name() {
     local line="$1"
-    echo "$line" | sed -E 's/^.*[├└]── //'
+    # Remove tree structure characters and any comments (text after #)
+    echo "$line" | sed -E 's/^.*[├└]── //' | sed -E 's/ +#.*$//'
 }
 
 # Check if an item is a directory by looking for trailing slash
@@ -130,7 +131,7 @@ sanitize_name() {
 # Initialize directory tracking
 declare -a dir_stack=()     # Stores directory names at each level
 current_path="$base_dir"    # Current working path
-prev_level=0               # Previous indentation level
+prev_level=0                # Previous indentation level
 
 # Process the input file line by line
 while IFS= read -r line || [ -n "$line" ]; do
@@ -143,7 +144,7 @@ while IFS= read -r line || [ -n "$line" ]; do
         continue
     fi
     
-    # Calculate current depth and get item name
+    # Calculate current depth and get item name (ignore comments)
     current_level=$(count_depth "$line")
     item=$(get_item_name "$line")
     item=$(sanitize_name "$item")
@@ -167,7 +168,7 @@ while IFS= read -r line || [ -n "$line" ]; do
         dir_stack[$current_level]="$folder_name"
         current_path="$new_path"
     else
-        # Handle file creation
+        # Handle file creation (ignore comments)
         touch "$current_path/$item"
     fi
     

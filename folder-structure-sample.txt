@@ -1,35 +1,10 @@
 /
-├── src/
-│   ├── app/
-│   │   ├── [locale]/
-│   │   │   ├── layout.tsx
-│   │   │   └── page.tsx
-│   │   └── middleware.ts
-│   ├── components/
-│   │   ├── ui/
-│   │   │   └── Button/
-│   │   │       ├── Button.tsx
-│   │   │       └── Button.module.scss
-│   │   └── layout/
-│   ├── lib/
-│   │   └── validations/
-│   │       └── auth.ts
-│   ├── messages/
-│   │   ├── en.json
-│   │   ├── es.json
-│   │   └── fr.json
-│   ├── store/
-│   │   └── useStore.ts
-│   ├── styles/
-│   │   ├── globals.scss
-│   │   └── mixins/
-│   │       └── _breakpoints.scss
-│   └── utils/
-│       └── api.ts
-├── public/
-├── .eslintrc.json
-├── .prettierrc
-├── jest.config.js
-├── next.config.js
-├── package.json
-└── tsconfig.json
+└── sample/
+    ├── subfolder1/
+    │   ├── 01_file.js # comment 1
+    │   ├── 02_file.js # comment 2
+    │   └── 03_file.js # comment 3
+    └── subfolder2/
+        ├── 01_file.js # comment 4
+        ├── 02_file.js # comment 5
+        └── 03_file.js # comment 6

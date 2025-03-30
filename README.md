@@ -25,6 +25,7 @@ Turn ASCII tree diagrams into real file system structures with a single command.
 - Improved cross-platform compatibility
 - Enhanced error handling and input validation
 - Automatic dependency management
+- Added support for ignoring comments in tree structure
 
 ## 🚀 Quick Start
 
@@ -53,13 +54,15 @@ sudo ln -s "$(pwd)/treecraft-fs-generator.sh" /usr/local/bin/treecraft
 1. Create your structure file (e.g., `folder-structure-sample.txt`):
 ```
 /
-└── root/
-    └── test/
-        ├── unit/
-        │   ├── 01_basic_operations.bats
-        │   └── 02_directory_creation.bats
-        └── integration/
-            └── 01_full_structure.bats
+└── sample/
+    ├── subfolder1/
+    │   ├── 01_file.js # comment 1
+    │   ├── 02_file.js # comment 2
+    │   └── 03_file.js # comment 3
+    └── subfolder2/
+        ├── 01_file.js # comment 4
+        ├── 02_file.js # comment 5
+        └── 03_file.js # comment 6
 ```
 
 2. Run TreeCraft:
@@ -74,6 +77,7 @@ sudo ln -s "$(pwd)/treecraft-fs-generator.sh" /usr/local/bin/treecraft
 - Mixed indentation patterns
 - Vertical bar with spaces (`│   `)
 - Four space indentation (`    `)
+- Comment handling (text after `#` is ignored)
 
 ### Cross-Platform Support
 - macOS (Intel & Apple Silicon)
@@ -87,34 +91,6 @@ sudo ln -s "$(pwd)/treecraft-fs-generator.sh" /usr/local/bin/treecraft
 - Special character handling
 - Permission management
 - Path length validation
-
-## 🛠 Development Setup
-
-### Running Tests
-```bash
-# Install BATS
-npm install -g bats
-git clone https://github.com/bats-core/bats-support test/test_helper/bats-support
-git clone https://github.com/bats-core/bats-assert test/test_helper/bats-assert
-
-# Run test suites
-bats test/unit/*.bats
-```
-
-### Test Categories
-- Unit tests
-  - Basic operations
-  - Directory creation
-  - File creation
-  - Error handling
-- Integration tests
-  - Full structures
-  - Cross-platform
-  - Dependencies
-- Edge case tests
-  - Special characters
-  - Deep nesting
-  - Permissions
 
 ## 📖 Documentation
 
@@ -132,6 +108,17 @@ bats test/unit/*.bats
 - `├──` for items with siblings below
 - `└──` for last items in their groups
 - `│   ` for vertical lines in the tree
+
+### Comments
+- Text after `#` in tree structures is treated as a comment and ignored
+- Comments can be used to document the purpose of files and directories:
+  ```
+  ├── subfolder1/
+  │   ├── 01_file.js # comment 1
+  │   ├── 02_file.js # comment 2
+  │   └── 03_file.js # comment 3
+  ```
+- The script will create the directory structure without processing these comments
 
 ## 🤝 Contributing
 
